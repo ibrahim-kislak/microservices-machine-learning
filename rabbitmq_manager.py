@@ -11,7 +11,7 @@ class RabbitMQManager:
         if self.connection is None or self.connection.is_closed:
             self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host))
             self.channel = self.connection.channel()
-            self.channel.queue_declare(queue=self.queue)
+            
         
     def get_channel(self):
         if self.channel is None or self.channel.is_closed:
@@ -21,6 +21,7 @@ class RabbitMQManager:
     def publish_message(self, message: str, routing_key: str, exchange: str = ''):
   
         ch = self.get_channel()  
+        ch.queue_declare(queue=routing_key, durable=True)
         ch.basic_publish(
             exchange=exchange,
             routing_key=routing_key,  
