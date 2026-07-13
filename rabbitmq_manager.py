@@ -7,7 +7,7 @@ class RabbitMQManager:
         self.channel = None
 
     def connect(self):
-        """Establish a connection to RabbitMQ and declare the queue."""
+        
         if self.connection is None or self.connection.is_closed:
             self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host))
             self.channel = self.connection.channel()
