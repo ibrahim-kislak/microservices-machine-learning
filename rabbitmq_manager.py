@@ -21,12 +21,15 @@ class RabbitMQManager:
     def publish_message(self, message: str, routing_key: str, exchange: str = ''):
   
         ch = self.get_channel()  
-        ch.queue_declare(queue=routing_key, durable=True)
-        ch.basic_publish(
+        
+        ch.basic_publish (
             exchange=exchange,
             routing_key=routing_key,  
-            body=message
-        )
+            body=message,
+            properties=pika.BasicProperties(
+                delivery_mode=pika.DeliveryMode.Persistent
+            ))
+        
 
     def close_connection(self):
         

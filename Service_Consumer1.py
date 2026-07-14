@@ -5,7 +5,9 @@ RABBIT=rmq.rabbitmq_service
 
 channel=RABBIT.get_channel()
 
+channel.exchange_declare(exchange='payment_exchange', exchange_type='fanout', durable=True)
 channel.queue_declare(queue='payment_queue', durable=True)
+channel.queue_bind(exchange='payment_exchange', queue='payment_queue')  
 
 def callback (ch,method,properties,body):
     body_str=body.decode('utf-8')
