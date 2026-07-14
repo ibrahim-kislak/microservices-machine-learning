@@ -1,0 +1,25 @@
+import rabbitmq_manager as rmq
+import json 
+import os , sys
+RABBIT=rmq.rabbitmq_service
+
+channel=RABBIT.get_channel()
+
+channel.queue_declare(queue='payment_queue', durable=True)
+
+def callback (ch,method,properties,body):
+    body_str=body.decode('utf-8')
+    payment_details=json.loads(body_str)
+    print(f"Received payment details: {payment_details}")
+    channel.basic_ack(delivery_tag=method.delivery_tag)
+
+channel.basic_consume(queue='payment_queue', on_message_callback=callback)
+print("Waiting for messages. To exit press CTRL+C")
+
+try:
+    channel.start_consuming()
+except KeyboardInterrupt:
+    try:
+        sys.exit(0) 
+    except SystemExit:
+        os._exit(0)
