@@ -7,7 +7,7 @@ payment_details = {
     "currency": "USD",
     "payment_method": "credit_card",
     "card_number": "4111111111111111",
-    "is_paid": False}
+    "is_paid": True}
 
 def Process_payment (payment_details):
     
