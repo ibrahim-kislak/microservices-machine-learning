@@ -13,6 +13,8 @@ def Process_payment (payment_details):
     
     if payment_details["is_paid"]:
         print("Payment has already been processed.")
+        
+        RABBIT.publish_message(message=json.dumps(payment_details), routing_key='payment_queue')
         return  
     else :  
         message = json.dumps(payment_details)
