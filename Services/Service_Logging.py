@@ -1,4 +1,4 @@
-import rabbitmq_manager as rmq
+import Manager.rabbitmq_manager as rmq
 import json
 import os , sys
 RABBIT = rmq.rabbitmq_service
