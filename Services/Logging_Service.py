@@ -17,7 +17,8 @@ channel=RABBIT.get_channel()
 channel.exchange_declare(exchange='prediction_exchange', exchange_type='fanout', durable=True)
 channel.queue_declare(queue='logging_queue', durable=True)
 channel.queue_bind(exchange='prediction_exchange', queue='logging_queue')
-
+channel.queue_declare(queue='prediction_queue', durable=True)
+channel.queue_bind(exchange='prediction_exchange', queue='prediction_queue')
 def callback(ch, method, properties, body):
     try:
         body_str = body.decode('utf-8')
