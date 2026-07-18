@@ -13,37 +13,71 @@ channel.queue_declare("logging_queue",durable=True)
 channel.queue_bind(exchange="prediction_exchange", queue="logging_queue")
 patients = [
     {
-        "patient_id": "P_1001",
-        "age": 67.0,
-        "bmi": 36.6,
-        "hypertension": 1,
-        "smoking_status": "formerly smoked",
-        "work_type": "Private",
+        "patient_id": "P_2001",
         "gender": "Male",
-        "Residence_type": "Urban"
-    },
-    {
-        "patient_id": "P_1002",
-        "age": 45.0,
-        "bmi": 22.1,
+        "age": 80.0,
         "hypertension": 0,
-        "smoking_status": "never smoked",
-        "work_type": "Govt_job",
-        "gender": "Female",
-        "Residence_type": "Rural"
+        "heart_disease": 1,
+        "ever_married": "Yes",
+        "work_type": "Private",
+        "Residence_type": "Rural",
+        "avg_glucose_level": 105.92,
+        "bmi": 32.5,
+        "smoking_status": "never smoked"
     },
     {
-        "patient_id": "P_1003",
-        "age": 78.0,
-        "bmi": 29.4,
+        "patient_id": "P_2002",
+        "gender": "Female",
+        "age": 49.0,
+        "hypertension": 0,
+        "heart_disease": 0,
+        "ever_married": "Yes",
+        "work_type": "Private",
+        "Residence_type": "Urban",
+        "avg_glucose_level": 171.23,
+        "bmi": 34.4,
+        "smoking_status": "smokes"
+    },
+    {
+        "patient_id": "P_2003",
+        "gender": "Female",
+        "age": 79.0,
         "hypertension": 1,
-        "smoking_status": "smokes",
+        "heart_disease": 0,
+        "ever_married": "Yes",
         "work_type": "Self-employed",
-        "gender": "Male",
-        "Residence_type": "Urban"
+        "Residence_type": "Rural",
+        "avg_glucose_level": 174.12,
+        "bmi": 24.0,
+        "smoking_status": "never smoked"
+    },
+    {
+        "patient_id": "P_2004",
+        "gender": "Female",
+        "age": 69.0,
+        "hypertension": 0,
+        "heart_disease": 0,
+        "ever_married": "No",
+        "work_type": "Private",
+        "Residence_type": "Urban",
+        "avg_glucose_level": 94.39,
+        "bmi": 22.8,
+        "smoking_status": "never smoked"
+    },
+    {
+        "patient_id": "P_2005",
+        "gender": "Female",
+        "age": 61.0,
+        "hypertension": 0,
+        "heart_disease": 1,
+        "ever_married": "Yes",
+        "work_type": "Govt_job",
+        "Residence_type": "Rural",
+        "avg_glucose_level": 120.46,
+        "bmi": 36.8,
+        "smoking_status": "smokes"
     }
 ]
-
 def process_patient (patient):
     patient_id=patient["patient_id"]
     redis_key=f"stroke_prediction :{patient_id}"
