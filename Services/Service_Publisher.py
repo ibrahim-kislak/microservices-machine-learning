@@ -5,12 +5,11 @@ REDIS = redis.redis_service
 RABBIT = rmq.rabbitmq_service
 
 channel=RABBIT.get_channel()
-channel.exchange_declare(exchange='prediction_exchange', exchange_type='fanout', durable=True)
+channel.exchange_declare(exchange='prediction_exchange', exchange_type='topic', durable=True)
 channel.queue_declare(queue='prediction_queue', durable=True)
-channel.queue_bind(exchange='prediction_exchange', queue='prediction_queue')
-
 channel.queue_declare("logging_queue",durable=True)
-channel.queue_bind(exchange="prediction_exchange", queue="logging_queue")
+channel.queue_bind(exchange='prediction_exchange', queue='prediction_queue',routing_key="hospital.*.prediction")
+channel.queue_bind(exchange="prediction_exchange", queue="logging_queue",routing_key="hospital.#")
 patients = [
     {
         "patient_id": "P_2001",
