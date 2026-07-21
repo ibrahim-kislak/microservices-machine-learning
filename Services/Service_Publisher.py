@@ -1,9 +1,10 @@
 import Manager.rabbitmq_manager as rmq
 import json
+import time
 import Manager.Redis_Manager as redis
 REDIS = redis.redis_service
 RABBIT = rmq.rabbitmq_service
-
+time.sleep(10)  # Wait for RabbitMQ to be ready
 channel=RABBIT.get_channel()
 channel.exchange_declare(exchange='prediction_exchange', exchange_type='topic', durable=True)
 channel.queue_declare(queue='prediction_queue', durable=True)

@@ -1,8 +1,10 @@
+import os
+
 import pika
 
 class RabbitMQManager:
-    def __init__(self, host='localhost',):
-        self.host = host
+    def __init__(self, host=None):
+        self.host = host or os.getenv('RABBITMQ_HOST', 'localhost')
         self.connection = None
         self.channel = None
 
@@ -37,4 +39,4 @@ class RabbitMQManager:
             self.connection.close()
             print("RabbitMQ connection closed.")
 
-rabbitmq_service=RabbitMQManager(host='localhost')
+rabbitmq_service=RabbitMQManager()

@@ -31,4 +31,4 @@ class RedisManager:
             except redis.RedisError:
                 return False
 
-redis_manager = RedisManager()
+redis_service= RedisManager()
