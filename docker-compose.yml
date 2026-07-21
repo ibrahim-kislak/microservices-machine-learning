@@ -8,7 +8,6 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: always
-    # RabbitMQ'nun hazır olup olmadığını kontrol eden healthcheck
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
@@ -22,7 +21,6 @@ services:
     ports:
       - "6379:6379"
     restart: always
-    # Redis'in hazır olup olmadığını kontrol eden healthcheck
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
