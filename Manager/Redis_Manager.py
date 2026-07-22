@@ -1,7 +1,7 @@
 import redis 
 from typing import Any, Optional, List, Union
 class RedisManager:
-    def __init__(self, host:str ='localhost', port:int=6379, db:int=0, decode_responses:bool=True)-> None:
+    def __init__(self, host:str ='redis', port:int=6379, db:int=0, decode_responses:bool=True)-> None:
         self._pool=redis.ConnectionPool(
             host=host,
             port=port,                                

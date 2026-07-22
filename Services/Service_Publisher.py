@@ -80,7 +80,7 @@ patients = [
 ]
 def process_patient (patient):
     patient_id=patient["patient_id"]
-    redis_key=f"stroke_prediction :{patient_id}"
+    redis_key=f"stroke_prediction:{patient_id}"
     cached_status=REDIS.get_value(redis_key)
     
     if cached_status is not None:
@@ -88,7 +88,9 @@ def process_patient (patient):
     else: 
         print(f"Cache Miss: {patient_id} Sent to the machine to prediction...")
         msg=json.dumps(patient)
-        RABBIT.publish_message(message=msg,exchange="prediction_exchange",routing_key="")
+        RABBIT.publish_message(message=msg,exchange="prediction_exchange",routing_key="hospital.stroke.prediction")
         REDIS.set_value(redis_key,"işleme alindi veya tahmin edildi",ttl_sec=360)
         
-        
+    
+for patient in patients:
+    process_patient(patient)    

@@ -3,7 +3,7 @@ import json
 import os , sys
 import h2o
 h2o.init()
-MODEL_PATH="/home/baris/python_microservice/Models/GLM_1_AutoML_1_20260716_180417"
+MODEL_PATH = "/app/Models/GLM_1_AutoML_1_20260716_180417"
 model=h2o.load_model(MODEL_PATH)
 RABBIT=rmq.rabbitmq_service
 
@@ -21,8 +21,7 @@ def callback (ch,method,properties,body):
         h2o_format_data = {k: [v] for k, v in patient_details.items()}
         
         predict = model.predict(h2o.H2OFrame(h2o_format_data))
-        pred_df = predict.as_data_frame()
-        p1_prediction = float(pred_df["p1"].iloc[0])
+        p1_prediction = float(predict["p1"][0, 0])
         
         is_at_risk = p1_prediction > 0.104433  
         print(f"[!] PREDICTION RESULT -> At Risk?: {is_at_risk} | Probability: {p1_prediction*100:.2f}%")
