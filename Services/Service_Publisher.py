@@ -1,10 +1,10 @@
+import time
+time.sleep(10)  # Wait for RabbitMQ to be ready
 import Manager.rabbitmq_manager as rmq
 import json
-import time
 import Manager.Redis_Manager as redis
 REDIS = redis.redis_service
 RABBIT = rmq.rabbitmq_service
-time.sleep(10)  # Wait for RabbitMQ to be ready
 channel=RABBIT.get_channel()
 channel.exchange_declare(exchange='prediction_exchange', exchange_type='topic', durable=True)
 channel.queue_declare(queue='prediction_queue', durable=True)
@@ -85,11 +85,14 @@ def process_patient (patient):
     
     if cached_status is not None:
         print(f"Cache Hit: {patient_id} status: {cached_status}")
+        
     else: 
         print(f"Cache Miss: {patient_id} Sent to the machine to prediction...")
+        
         msg=json.dumps(patient)
+        REDIS.set_value(redis_key, "PROCESSING", ttl_sec=60)
         RABBIT.publish_message(message=msg,exchange="prediction_exchange",routing_key="hospital.stroke.prediction")
-        REDIS.set_value(redis_key,"işleme alindi veya tahmin edildi",ttl_sec=360)
+       # REDIS.set_value(redis_key,"işleme alindi veya tahmin edildi",ttl_sec=360)
         
     
 for patient in patients:

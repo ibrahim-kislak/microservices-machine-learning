@@ -1,8 +1,8 @@
 import Manager.rabbitmq_manager as rmq
 import json
-import os , sys
+import os , sys,time
 import logging
-
+time.sleep(10)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(message)s',
