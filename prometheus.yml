@@ -6,7 +6,7 @@ scrape_configs:
   - job_name: 'prediction_service_metrics'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['prediction_service:8000']
   - job_name: 'logging_service_metrics'
     metrics_path: '/metrics'
     static_configs:

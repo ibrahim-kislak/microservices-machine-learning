@@ -31,6 +31,8 @@ services:
     build: .
     container_name: prediction_service
     command: python Services/Prediction_Service.py
+    ports:
+      - "8000:8000"
     environment:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
@@ -44,23 +46,27 @@ services:
         condition: service_healthy
     restart: always
 
-    prometheus:
+  prometheus:
       image: prom/prometheus:v2.45.0
       container_name: prometheus
       restart: always
       ports:
         - "9090:9090"
       volumes:
-        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml  
 
   logging-service:
     build: .
     container_name: logging_service
     command: python Services/Logging_Service.py
+    ports:
+      - "8001:8000"
     environment:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
       - PYTHONPATH=/app
+      - PROMETHEUS_PORT=8000
+      - PROMETHEUS_HOST=0.0.0.0
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -72,11 +78,15 @@ services:
     build: .
     container_name: publisher_service
     command: python Services/Service_Publisher.py
+    ports:
+      - "8002:8000"
     environment:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
+      - PROMETHEUS_PORT=8000
+      - PROMETHEUS_HOST=0.0.0.0
     depends_on:
       rabbitmq:
         condition: service_healthy
