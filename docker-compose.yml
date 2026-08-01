@@ -35,12 +35,23 @@ services:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
       - PYTHONPATH=/app
+      - PROMETHEUS_PORT=8000
+      - PROMETHEUS_HOST=0.0.0.0
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_healthy
     restart: always
+
+    prometheus:
+      image: prom/prometheus:v2.45.0
+      container_name: prometheus
+      restart: always
+      ports:
+        - "9090:9090"
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
 
   logging-service:
     build: .
