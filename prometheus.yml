@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prediction_service_metrics'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:8000']
+  - job_name: 'logging_service_metrics'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['logging_service:8000']
+  - job_name: 'service_publisher_metrics'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['service_publisher:8000']
