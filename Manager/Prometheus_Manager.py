@@ -40,4 +40,4 @@ class PrometheusManager:
             duration = time.time() - start_time
             self.prediction_duration_seconds.observe(duration)
             
-promethus_service = PrometheusManager()
+prometheus_service = PrometheusManager()
