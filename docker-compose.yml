@@ -54,7 +54,25 @@ services:
         - "9090:9090"
       volumes:
         - ./prometheus.yml:/etc/prometheus/prometheus.yml  
-
+      healthcheck:
+        test: ["CMD", "wget", "--spider", "http://localhost:9090/-/healthy"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+  grafana:
+      image: grafana/grafana:latest
+      container_name: grafana
+      restart: always
+      ports:
+        - "3000:3000"
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+      depends_on:
+        prometheus:
+          condition: service_healthy
+      volumes:
+        - grafana-storage:/var/lib/grafana
   logging-service:
     build: .
     container_name: logging_service
@@ -93,3 +111,5 @@ services:
       redis:
         condition: service_healthy
     restart: always
+volumes:
+  grafana-storage:
