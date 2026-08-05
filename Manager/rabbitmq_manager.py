@@ -20,8 +20,9 @@ class RabbitMQManager:
             self.connect()
         return self.channel
 
-    def publish_message(self, message: str, routing_key: str, exchange: str = ''):
-  
+    def publish_message(self, message: str, routing_key: str, exchange: str = '',headers: dict = None):
+        if headers is None:
+            headers = {}
         ch = self.get_channel()  
         
         ch.basic_publish (
@@ -29,7 +30,8 @@ class RabbitMQManager:
             routing_key=routing_key,  
             body=message,
             properties=pika.BasicProperties(
-                delivery_mode=pika.DeliveryMode.Persistent
+                delivery_mode=pika.DeliveryMode.Persistent,
+                headers=headers
             ))
         
 
