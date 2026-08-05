@@ -5,7 +5,7 @@ import Manager.rabbitmq_manager as rmq
 import json
 import Manager.Redis_Manager as redis
 import Manager.Prometheus_Manager as prom
-
+import Manager.Jaeger_Manager as jaeger
 REDIS = redis.redis_service
 RABBIT = rmq.rabbitmq_service
 channel=RABBIT.get_channel()
@@ -16,6 +16,8 @@ channel.queue_bind(exchange='prediction_exchange', queue='prediction_queue',rout
 channel.queue_bind(exchange="prediction_exchange", queue="logging_queue",routing_key="hospital.#")
 PROMETHEUS=prom.prometheus_service
 PROMETHEUS.start_server()
+JAEGER=jaeger.JaegerManager(service_name="publisher_service")
+
 patients = [
     {
         "patient_id": "P_2001",
@@ -85,34 +87,41 @@ patients = [
 ]
 def process_patient (patient):
     PROMETHEUS.increment_active_prediction()
-    
-    try:
-        with PROMETHEUS.track_prediction_duration():
-            patient_id = patient["patient_id"]
-            redis_key = f"stroke_prediction:{patient_id}"
-            cached_status = REDIS.get_value(redis_key)
-            
-            if cached_status is not None:
-                print(f"Cache Hit: {patient_id} status: {cached_status}")
-                PROMETHEUS.record_prediction(status="cache_hit")
+    with JAEGER.start_span("process_patient") as span:
+        span.set_attribute("patient.id", patient_id)
+        try:
+            with PROMETHEUS.track_prediction_duration():
+                patient_id = patient["patient_id"]
+                redis_key = f"stroke_prediction:{patient_id}"
+                cached_status = REDIS.get_value(redis_key)
                 
-            else: 
-                print(f"Cache Miss: {patient_id} Sent to the machine for prediction...")
-                msg = json.dumps(patient)
-                REDIS.set_value(redis_key, "PROCESSING", ttl_sec=60)
-                RABBIT.publish_message(
-                    message=msg,
-                    exchange="prediction_exchange",
-                    routing_key="hospital.stroke.prediction"
-                )
-                PROMETHEUS.record_prediction(status="success")
+                if cached_status is not None:
+                    print(f"Cache Hit: {patient_id} status: {cached_status}")
+                    span.set_attribute("cache.status", "hit")
+                    PROMETHEUS.record_prediction(status="cache_hit")
+                    
+                else: 
+                    print(f"Cache Miss: {patient_id} Sent to the machine for prediction...")
+                    msg = json.dumps(patient)
+                    REDIS.set_value(redis_key, "PROCESSING", ttl_sec=60)
+                    
+                    headers={}
+                    JAEGER.inject_context(headers=headers)
 
-    except Exception as e:
-        print(f"[-] Publisher Error: {str(e)}")
-        PROMETHEUS.record_prediction(status="error")
+                    RABBIT.publish_message(
+                        message=msg,
+                        exchange="prediction_exchange",
+                        routing_key="hospital.stroke.prediction"
+                    )
+                    PROMETHEUS.record_prediction(status="success")
 
-    finally:
-        PROMETHEUS.decrement_active_prediction()
+        except Exception as e:
+            print(f"[-] Publisher Error: {str(e)}")
+            span.set_attribute("error", True)
+            PROMETHEUS.record_prediction(status="error")
+
+        finally:
+            PROMETHEUS.decrement_active_prediction()
         
     
 try:
