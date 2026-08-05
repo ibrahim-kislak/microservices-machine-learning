@@ -22,14 +22,15 @@ class JaegerManager:
         self.tracer = trace.get_tracer(service_name)
         self.propagator = TraceContextTextMapPropagator()
         
-        def inject_context(carrier,headers:dict)->dict:
-            if headers is None:
-                headers = {}
-            self.propagator.inject(carrier, headers)
-            return headers
-        def extract_context(carrier,headers:dict)->dict:
-            if headers is None:
-                headers = {}
-            context = self.propagator.extract(carrier=headers)
-            return context
-        
+def inject_context(self, headers: dict = None) -> dict:
+    if headers is None:
+        headers = {}
+   
+    self.propagator.inject(carrier=headers)
+    return headers
+
+def extract_context(self, headers: dict = None):
+    if headers is None:
+        headers = {}
+    
+    return self.propagator.extract(carrier=headers)
