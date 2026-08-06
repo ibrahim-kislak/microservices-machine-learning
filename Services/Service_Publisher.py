@@ -85,13 +85,15 @@ patients = [
         "smoking_status": "smokes"
     }
 ]
-def process_patient (patient):
+def process_patient(patient):
     PROMETHEUS.increment_active_prediction()
-    with JAEGER.start_span("process_patient") as span:
+    patient_id = patient["patient_id"] 
+    
+    with JAEGER.tracer.start_as_current_span("process_prediction") as span:
+
         span.set_attribute("patient.id", patient_id)
         try:
             with PROMETHEUS.track_prediction_duration():
-                patient_id = patient["patient_id"]
                 redis_key = f"stroke_prediction:{patient_id}"
                 cached_status = REDIS.get_value(redis_key)
                 
@@ -105,13 +107,15 @@ def process_patient (patient):
                     msg = json.dumps(patient)
                     REDIS.set_value(redis_key, "PROCESSING", ttl_sec=60)
                     
-                    headers={}
+                    headers = {}
                     JAEGER.inject_context(headers=headers)
 
+                   
                     RABBIT.publish_message(
                         message=msg,
                         exchange="prediction_exchange",
-                        routing_key="hospital.stroke.prediction"
+                        routing_key="hospital.stroke.prediction",
+                        headers=headers
                     )
                     PROMETHEUS.record_prediction(status="success")
 
@@ -128,10 +132,10 @@ try:
     while True:
         for patient in patients:
             process_patient(patient)
-            time.sleep(3)  # Her hasta arasında 3 saniye bekle (Trafiği gerçekçi kılar)
+            time.sleep(3)  
             
         print("[*] Waiting 15 seconds before next iteration cycle...")
-        time.sleep(15)  # Tüm liste bittiğinde yeni döngü öncesi bekleme
+        time.sleep(15) 
         
 except KeyboardInterrupt:
     print("\n[*] Publisher service stopped gracefully.")
