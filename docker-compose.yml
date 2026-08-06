@@ -37,6 +37,7 @@ services:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
       - PYTHONPATH=/app
+      - JAEGER_HOST=jaeger
       - PROMETHEUS_PORT=8000
       - PROMETHEUS_HOST=0.0.0.0
     depends_on:
@@ -73,6 +74,16 @@ services:
           condition: service_healthy
       volumes:
         - grafana-storage:/var/lib/grafana
+
+  jaeger:
+      image: jaegertracing/all-in-one:latest
+      container_name: jaeger
+      restart: always
+      ports:
+        - "16686:16686"
+        - "4318:4318"
+        - "4317:4317"
+     
   logging-service:
     build: .
     container_name: logging_service
@@ -101,6 +112,7 @@ services:
     environment:
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
+      - JAEGER_HOST=jaeger
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
       - PROMETHEUS_PORT=8000
@@ -110,6 +122,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      
     restart: always
 volumes:
   grafana-storage:
