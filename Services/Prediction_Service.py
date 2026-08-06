@@ -23,35 +23,35 @@ def callback (ch,method,properties,body):
     
     incoming_headers = properties.headers if properties.headers else {}
     context = JAEGER.extract_context(headers=incoming_headers)
-    with JAEGER.tracer.start_as_current_span("process_prediction", context=context) as span:
+    with JAEGER.tracer.start_as_current_span("process_prediction", context=context) as span,PROMETHEUS.track_prediction_duration():
         
         try:
-            with PROMETHEUS.track_prediction_duration():
-                body_str = body.decode('utf-8')
-                patient_details = json.loads(body_str)
-                patient_id = patient_details.get("patient_id")
-                span.set_attribute("patient.id", str(patient_id))
-                redis_key = f"stroke_prediction:{patient_id}"
-                h2o_format_data = {k: [v] for k, v in patient_details.items()}
-                
-                predict = model.predict(h2o.H2OFrame(h2o_format_data))
-                p1_prediction = float(predict["p1"][0, 0])
-                
-                is_at_risk = p1_prediction > 0.104433  
-                print(f"[!] PREDICTION RESULT -> At Risk?: {is_at_risk} | Probability: {p1_prediction*100:.2f}%")
-                status_payload = {
-                    "status": "COMPLETED",
-                    "is_at_risk": is_at_risk,
-                    "probability": round(p1_prediction * 100, 2)
-                }
-                
-                REDIS.set_value(redis_key, json.dumps(status_payload), ttl_sec=3600)
-                
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-                PROMETHEUS.record_prediction(status="success")
-                span.set_attribute("prediction.is_at_risk", is_at_risk)
-                span.set_attribute("prediction.probability", round(p1_prediction * 100, 2))
-        except json.JSONDecodeError:
+            
+            body_str = body.decode('utf-8')
+            patient_details = json.loads(body_str)
+            patient_id = patient_details.get("patient_id")
+            span.set_attribute("patient.id", str(patient_id))
+            redis_key = f"stroke_prediction:{patient_id}"
+            h2o_format_data = {k: [v] for k, v in patient_details.items()}
+            
+            predict = model.predict(h2o.H2OFrame(h2o_format_data))
+            p1_prediction = float(predict["p1"][0, 0])
+            
+            is_at_risk = p1_prediction > 0.104433  
+            print(f"[!] PREDICTION RESULT -> At Risk?: {is_at_risk} | Probability: {p1_prediction*100:.2f}%")
+            status_payload = {
+                "status": "COMPLETED",
+                "is_at_risk": is_at_risk,
+                "probability": round(p1_prediction * 100, 2)
+            }
+            
+            REDIS.set_value(redis_key, json.dumps(status_payload), ttl_sec=3600)
+            
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            PROMETHEUS.record_prediction(status="success")
+            span.set_attribute("prediction.is_at_risk", is_at_risk)
+            span.set_attribute("prediction.probability", round(p1_prediction * 100, 2))
+        except json.JSONDecodeError as e:
             print("[-] ERROR: Incoming message is not valid JSON.")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             span.record_exception(e)
